@@ -1,0 +1,29 @@
+plugins {
+    id 'application'
+}
+
+group 'org.scalar'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'info.picocli:picocli:4.6.1'
+
+    // https://mvnrepository.com/artifact/com.scalar-labs/scalardb
+    implementation group: 'com.scalar-labs', name: 'scalardb', version: '3.0.0'
+
+    implementation 'org.slf4j:slf4j-simple:1.7.21'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+application {
+    mainClass = 'AssetExchangeMain'
+}
+
+test {
+    useJUnitPlatform()
+}

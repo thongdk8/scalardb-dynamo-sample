@@ -1,0 +1,28 @@
+{
+  "asset_exchange.asset": {
+    "transaction": true,
+    "partition-key": [
+      "id"
+    ],
+    "clustering-key": [],
+    "columns": {
+      "id": "TEXT",
+      "description": "TEXT",
+      "price": "INT",
+      "belong": "TEXT"
+    }
+  },
+
+  "asset_exchange.user": {
+    "transaction": true,
+    "partition-key": [
+      "id"
+    ],
+    "clustering-key": [],
+    "columns": {
+      "id": "TEXT",
+      "name": "TEXT",
+      "balance": "INT"
+    }
+  }
+}

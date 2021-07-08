@@ -1,0 +1,11 @@
+# Ignore Gradle project-specific cache directory
+.gradle
+.classpath
+.project
+.settings/
+bin
+src/main/resources/thong_pham_accessKeys.csv
+
+# Ignore Gradle build output directory
+build
+.idea/
