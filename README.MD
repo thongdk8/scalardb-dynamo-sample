@@ -38,9 +38,7 @@ We need a schema to define our data models. Our schema file can be found [here](
     "partition-key": [
       "id"
     ],
-    "clustering-key": [
-      "belong"
-    ],
+    "clustering-key": [],
     "columns": {
       "id": "TEXT",
       "description": "TEXT",
