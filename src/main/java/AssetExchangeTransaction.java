@@ -72,7 +72,9 @@ public class AssetExchangeTransaction extends AssetExchange{
             assetOwnerId = ((TextValue) (assetResult.get().getValue("belong").get())).getString().get();
             assetPrice = ((IntValue) (assetResult.get().getValue("price").get())).get();
         } else throw new RuntimeException("Asset with id " + assetId + " belong to user id " + fromId + " doesn't exist!");
-        if (!assetOwnerId.equals(fromId)) throw new RuntimeException("Asset " + assetId +
+        if (!assetOwnerId.equals(fromId)) {
+          throw new RuntimeException(...)
+        }
                 " doesn't belong to user id " + fromId);
 
         Get fromGet = new Get(new Key(new TextValue(ID, fromId))).forNamespace(NAMESPACE).forTable(USER_TABLE_NAME);
