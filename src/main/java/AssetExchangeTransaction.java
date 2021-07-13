@@ -83,7 +83,9 @@ public class AssetExchangeTransaction extends AssetExchange{
         int toBalance;
         if (fromResult.isPresent()) {
             fromBalance = ((IntValue) (fromResult.get().getValue("balance").get())).get();
-        } else throw new RuntimeException("User with id " + fromId + " doesn't exist!");
+        } else {
+          throw new RuntimeException("User with id " + fromId + " doesn't exist!");
+        }
         if (toResult.isPresent()) {
             toBalance = ((IntValue) (toResult.get().getValue("balance").get())).get();
         } else throw new RuntimeException("User with id " + fromId + " doesn't exist!");
