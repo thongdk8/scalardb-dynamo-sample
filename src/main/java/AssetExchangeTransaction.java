@@ -6,6 +6,7 @@ import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
 import com.scalar.db.config.DatabaseConfig;
 import com.scalar.db.exception.storage.ExecutionException;
+import com.scalar.db.exception.transaction.CommitConflictException;
 import com.scalar.db.exception.transaction.CrudException;
 import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.io.IntValue;
@@ -102,19 +103,25 @@ public class AssetExchangeTransaction extends AssetExchange{
                 .withValue(new IntValue("balance", fromBalance + assetPrice)).forNamespace(NAMESPACE).forTable(USER_TABLE_NAME);
         Put toPut = new Put(new Key(new TextValue(ID, toId)))
                 .withValue(new IntValue("balance", toBalance - assetPrice)).forNamespace(NAMESPACE).forTable(USER_TABLE_NAME);
-        tx.put(fromPut);
-        tx.put(toPut);
 
         txService.with(NAMESPACE, ASSET_TABLE_NAME);
         Put assetPut = new Put(new Key(new TextValue(ID, assetId)))
                 .withValue(new TextValue("belong", toId))
                 .forNamespace(NAMESPACE).forTable(ASSET_TABLE_NAME);
-        tx.put(assetPut);
+
+        try {
+            tx.put(fromPut);
+            tx.put(toPut);
+            tx.put(assetPut);
+        } catch (Exception e) {
+            throw new CrudException("Put failed. " + e);
+        }
+
         try {
             tx.commit();
         } catch (Exception e) {
             tx.abort();
-            throw new CrudException("Commit transaction failed. " + e);
+            throw new CommitConflictException("Commit transaction failed. " + e);
         }
     }
 
