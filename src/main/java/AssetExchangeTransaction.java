@@ -9,6 +9,7 @@ import com.scalar.db.exception.storage.ExecutionException;
 import com.scalar.db.exception.transaction.CommitConflictException;
 import com.scalar.db.exception.transaction.CrudException;
 import com.scalar.db.exception.transaction.TransactionException;
+import com.scalar.db.exception.transaction.UnknownTransactionStatusException;
 import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.TextValue;
@@ -40,8 +41,18 @@ public class AssetExchangeTransaction extends AssetExchange{
                 .withValue(new IntValue("price", price))
                 .withValue(new TextValue("belong", belong))
                 .forNamespace(NAMESPACE).forTable(ASSET_TABLE_NAME);
-        tx.put(assetPut);
-        tx.commit();
+
+        try {
+            tx.put(assetPut);
+        } catch (CrudException e) {
+            tx.abort();
+        }
+
+        try {
+            tx.commit();
+        } catch (UnknownTransactionStatusException | CommitConflictException e) {
+            tx.abort();
+        }
         return assetId;
     }
 
@@ -54,8 +65,18 @@ public class AssetExchangeTransaction extends AssetExchange{
                 .withValue(new TextValue("name", name))
                 .withValue(new IntValue("balance", balance))
                 .forNamespace(NAMESPACE).forTable(USER_TABLE_NAME);
-        tx.put(userPut);
-        tx.commit();
+
+        try {
+            tx.put(userPut);
+        } catch (CrudException e) {
+            tx.abort();
+        }
+
+        try {
+            tx.commit();
+        } catch (UnknownTransactionStatusException | CommitConflictException e) {
+            tx.abort();
+        }
         return userId;
     }
 
@@ -113,15 +134,14 @@ public class AssetExchangeTransaction extends AssetExchange{
             tx.put(fromPut);
             tx.put(toPut);
             tx.put(assetPut);
-        } catch (Exception e) {
-            throw new CrudException("Put failed. " + e);
+        } catch (CrudException e) {
+            tx.abort();
         }
 
         try {
             tx.commit();
-        } catch (Exception e) {
+        } catch (UnknownTransactionStatusException | CommitConflictException e) {
             tx.abort();
-            throw new CommitConflictException("Commit transaction failed. " + e);
         }
     }
 
