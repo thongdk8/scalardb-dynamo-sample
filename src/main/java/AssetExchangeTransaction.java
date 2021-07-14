@@ -6,6 +6,7 @@ import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
 import com.scalar.db.config.DatabaseConfig;
 import com.scalar.db.exception.storage.ExecutionException;
+import com.scalar.db.exception.transaction.CrudException;
 import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
@@ -71,26 +72,31 @@ public class AssetExchangeTransaction extends AssetExchange{
         if (assetResult.isPresent()) {
             assetOwnerId = ((TextValue) (assetResult.get().getValue("belong").get())).getString().get();
             assetPrice = ((IntValue) (assetResult.get().getValue("price").get())).get();
-        } else throw new RuntimeException("Asset with id " + assetId + " belong to user id " + fromId + " doesn't exist!");
-        if (!assetOwnerId.equals(fromId)) {
-          throw new RuntimeException(...)
+        } else {
+            throw new RuntimeException("Asset with id " + assetId + " belong to user id " + fromId + " doesn't exist!");
         }
-                " doesn't belong to user id " + fromId);
+        if (!assetOwnerId.equals(fromId)) {
+            throw new RuntimeException("Asset with id " + assetId + " doesn't belong to user id " + fromId);
+        }
 
         Get fromGet = new Get(new Key(new TextValue(ID, fromId))).forNamespace(NAMESPACE).forTable(USER_TABLE_NAME);
         Get toGet = new Get(new Key(new TextValue(ID, toId))).forNamespace(NAMESPACE).forTable(USER_TABLE_NAME);
         Optional<Result> fromResult = tx.get(fromGet);
         Optional<Result> toResult = tx.get(toGet);
+
         int fromBalance;
         int toBalance;
         if (fromResult.isPresent()) {
             fromBalance = ((IntValue) (fromResult.get().getValue("balance").get())).get();
         } else {
-          throw new RuntimeException("User with id " + fromId + " doesn't exist!");
+            throw new RuntimeException("User with id " + fromId + " doesn't exist!");
         }
         if (toResult.isPresent()) {
             toBalance = ((IntValue) (toResult.get().getValue("balance").get())).get();
-        } else throw new RuntimeException("User with id " + fromId + " doesn't exist!");
+        } else {
+            throw new RuntimeException("User with id " + fromId + " doesn't exist!");
+        }
+
         if (toBalance < assetPrice) throw new RuntimeException("Balance of user id" + toId + " is insufficient!");
         Put fromPut = new Put(new Key(new TextValue(ID, fromId)))
                 .withValue(new IntValue("balance", fromBalance + assetPrice)).forNamespace(NAMESPACE).forTable(USER_TABLE_NAME);
@@ -104,8 +110,12 @@ public class AssetExchangeTransaction extends AssetExchange{
                 .withValue(new TextValue("belong", toId))
                 .forNamespace(NAMESPACE).forTable(ASSET_TABLE_NAME);
         tx.put(assetPut);
-
-        tx.commit();
+        try {
+            tx.commit();
+        } catch (Exception e) {
+            tx.abort();
+            throw new CrudException("Commit transaction failed. " + e);
+        }
     }
 
     public void close() {
